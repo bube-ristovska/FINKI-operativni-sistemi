@@ -1,0 +1,90 @@
+package Zad1;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+class LoginQueueSemaphore{ //grants permits to users to login
+    Semaphore semaphore; //n-semaphore
+
+    public LoginQueueSemaphore(int limitOfLogins) {
+        semaphore = new Semaphore(limitOfLogins);
+    }
+
+    public void tryLogin() throws InterruptedException {
+        semaphore.acquire();
+    }
+
+    public void logoutUser(){
+        semaphore.release();
+    }
+
+    public int availableLoginSpots(){
+        return semaphore.availablePermits();
+    }
+}
+
+class UserThread extends Thread{
+    String username;
+    LoginQueueSemaphore queue;
+    Lock lock = new ReentrantLock();
+
+    //constructor of user
+    public UserThread(String username, LoginQueueSemaphore queue) {
+        this.username = username;
+        this.queue = queue;
+    }
+
+    @Override
+    public void run() {
+        //critical region begin but we have semaphores so this would not matter?
+        lock.lock();
+        System.out.println("Available slots: " + this.queue.availableLoginSpots() +
+                " User: " + this.username);
+        lock.unlock();
+        //critical region end
+
+        try{
+            this.queue.tryLogin(); //the user here tries to login
+        }
+        catch (InterruptedException e) { //error message not important
+            e.printStackTrace();
+        }
+
+
+        System.out.println("I have successfully logged in " + this.username);
+        this.queue.logoutUser(); //semaphore.login
+
+        System.out.println("I have successfully logged out " + this.username);
+
+    }
+}
+
+public class SemaphoreExample  {
+    /*I am main*/
+    public static void main(String[] args) throws InterruptedException {
+        // 8 people at the same time is the max that can be logged in
+        LoginQueueSemaphore queue = new LoginQueueSemaphore(8);
+        List<UserThread> users = new ArrayList<UserThread>();
+
+        for (int i = 0; i < 10; i++) {
+            users.add(new UserThread("user"+i, queue));
+        }
+
+        users.forEach(Thread::start); //t -> t.start() all threads start
+
+        users.forEach(u ->{
+            try {
+                u.join(); //main waits for user to finish
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        System.out.println("Threads finished----------------------App finishes here");
+
+
+    }
+}
