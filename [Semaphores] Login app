@@ -39,7 +39,7 @@ class UserThread extends Thread{
 
     @Override
     public void run() {
-        //critical region begin but we have semaphores so this would not matter?
+        //critical region begin with MUTEX = Binary semaphore = LOCK
         lock.lock();
         System.out.println("Available slots: " + this.queue.availableLoginSpots() +
                 " User: " + this.username);
