@@ -1,0 +1,38 @@
+package Zad1;
+
+/* We make two thread classes that extend thread and we override their run methods*/
+class ThreadA extends Thread {
+    int a; //for aesthetics
+    @Override
+    public void run() {
+        for (int i = 1; i <= 20; i++) {
+            System.out.println("A thread: " + i);
+        }
+        System.out.println("----------------------A DONE");
+
+    }
+}
+
+class ThreadB extends Thread {
+    int b; //for aesthetics
+    @Override
+    public void run() {
+        for (int i = -1; i >= -20; i--) {
+            System.out.println("B thread: " + i);
+        }
+        System.out.println("----------------------B DONE");
+    }
+}
+
+public class MultipleThreadsExample {
+    public static void main(String[] args) throws InterruptedException {
+        Thread threadA = new ThreadA();
+        Thread threadB = new ThreadB();
+
+        threadA.start();
+        threadB.start();
+
+        Thread.sleep(4);
+        System.out.println("Main done");
+    }
+}
