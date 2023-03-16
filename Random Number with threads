@@ -1,0 +1,39 @@
+package Zad1;
+
+class Count extends Thread { //thread that is called count
+    /*TODO fun stuf pravi*/
+    long result = 0;
+
+    @Override
+    public void run() {
+        result = count(); //we change the result to count
+    }
+
+    /*We make other two methods*/
+    public long getResult() {
+        return result;
+    }
+
+    public long count() {
+        //we count with tmp from 0 to 100.000 and make count 100.000
+        for (result = 0; result <= 100000 ; result++) {
+
+        }
+        return result;
+    }
+}
+
+public class UseJoinExample {
+    /*I am main*/
+    public static void main(String[] args) throws InterruptedException {
+        Count count = new Count();
+        count.start();
+
+        Thread.sleep(1); //let's the thread work a bit
+        //RANDOM NUMBER GENERATOR
+        System.out.println("The result from the thread is = " + count.getResult());
+
+
+        System.out.println("Main done");
+    }
+}
