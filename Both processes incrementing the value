@@ -1,0 +1,61 @@
+package Zad1;
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+class IncrementExecutor extends Thread { //thread called IncrementExecutor
+    String nameOfThread;
+    UnsafeSequence unsafeSequence;
+
+    public IncrementExecutor(String nameOfThread, UnsafeSequence unsafeSequence){ //constructor
+        super(nameOfThread);
+        this.nameOfThread = nameOfThread;
+        this.unsafeSequence = unsafeSequence;
+    }
+
+    //we override run
+    @Override
+    public void run() {
+        for (int i = 0; i < 100; i++) {
+            unsafeSequence.getNext(); //incrementing of value here
+        }
+    }
+}
+
+class UnsafeSequence { //class in we do something scary we should protect
+    int value = 0;
+
+    //we make two methods
+
+    public int getNext() {
+        value++; //haram thing
+        System.out.println("Accessed by thread: " + Thread.currentThread().getName() + " Current value is: " + value);
+        return value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+}
+
+public class RaceConditionsExample {
+    /*I am main*/
+    public static void main(String[] args) throws InterruptedException {
+        UnsafeSequence unsafeSequence = new UnsafeSequence(); //we create the area of the value
+        List<Thread> threads = new ArrayList<>(); //list of many Threads
+
+        //let's make 2 threads we gonna name them processes
+        /*THEY BOTH INCREMENT THE VALUE VALUE ex. p1 value 3 then p2 never has the value 3*/
+        for (int i = 0; i < 2; i++) {
+            String name_of_process = "Process: " + i;
+            Thread newThread = new IncrementExecutor(name_of_process, unsafeSequence);
+            threads.add(newThread);
+
+            newThread.start(); //we call the run method
+        }
+
+        System.out.println("Main done");
+
+    }
+}
