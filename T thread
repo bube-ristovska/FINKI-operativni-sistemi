@@ -1,0 +1,19 @@
+package Zad1;
+
+public class ThreadClassExample {
+    public static void main(String[] args) {
+        T obj = new T();
+        obj.start();
+        //100 pati kje se ispechati no negde threadot kje og prekine
+        for (int i = 0; i < 100; i++) {
+            System.out.printf("Hello from main! %d%n", i);
+        }
+    }
+}
+
+class T extends Thread {
+    public void run() {
+        System.out.println("Hello from thread!"); //kje se isprinta paralelno na random position
+    }
+}
+
