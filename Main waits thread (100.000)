@@ -1,0 +1,45 @@
+package Zad1;
+
+class Count extends Thread { //thread that is called count
+    /*TODO fun stuf pravi*/
+    long result = 0;
+
+    @Override
+    public void run() {
+        result = count(); //we change the result to count
+    }
+
+    /*We make other two methods*/
+    public long getResult() {
+        return result;
+    }
+
+    public long count() {
+        //we count with tmp from 0 to 100.000 and make count 100.000
+        long tmp;
+        for (tmp = 0; tmp < 100000; tmp++) {
+          //same as while(tmp!=100.000) tmp++;
+        }
+        return tmp;
+    }
+}
+
+public class UseJoinExample {
+    /*I am main*/
+    public static void main(String[] args) throws InterruptedException {
+        Count count = new Count();
+        count.start();
+
+        try {
+            //we wait for the thread count to finish
+            //this means main and thread count will not execute parallel
+            count.join();
+            //it will count to 100.000 and it will return it it will not be stopped at any counting
+            System.out.println("The result from the thread is = " + count.getResult());
+        } catch (InterruptedException e) {
+           e.printStackTrace(); //print error message
+        }
+
+        System.out.println("Main done");
+    }
+}
