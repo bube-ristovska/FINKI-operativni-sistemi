@@ -1,0 +1,25 @@
+package Zad1;
+
+class Base{
+    int x;
+    //base class so we can extend
+}
+class T2 extends Base implements Runnable{
+    int y = 2;
+    //run is mandatory to override from runnable
+    @Override
+    public void run() {
+        System.out.printf("Hello from thread %d%n", y);
+    }
+}
+public class RunnableInterfaceExample {
+    public static void main(String[] args) {
+        Runnable runnable_object = new T2();
+        Thread thread_object = new Thread(runnable_object);
+        //we gave the obj from runnable as the argument of the thread constructor
+
+        thread_object.start();
+
+        System.out.println("Hello from main");
+    }
+}
