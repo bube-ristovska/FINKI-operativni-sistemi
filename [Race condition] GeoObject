@@ -1,0 +1,108 @@
+package Threads;
+
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+class GeoObject {
+    int height;
+    int width;
+
+    public GeoObject(int height, int width) {
+        this.height = height;
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return this.height;
+    }
+
+    public int getWidth() {
+        return this.width;
+    }
+
+    public void incrementHeight() {
+        this.height++;
+    }
+
+    public void incrementWidth() {
+        this.width++;
+    }
+
+    public String toString() {
+        return String.format("GeoObject: {height: %d, width: %d}", this.height, this.width);
+    }
+}
+
+class ObjectMutation {
+    static String staticString;
+    String normalString;
+
+    //three methods two public, one private
+
+    public static void example(String threadName){
+        GeoObject localVariable= new GeoObject(5, 3); // never shared
+        System.out.println("Initial value local: " + localVariable + " thread: " + threadName);
+        GeoObject result = mutate(localVariable);
+        System.out.println("Local value after mutation: " + result + " thread: " + threadName);
+    }
+
+    public static void example(String threadName, GeoObject geoObjectFromThread){
+        synchronized (geoObjectFromThread){
+        System.out.println("Initial value shared: " + geoObjectFromThread + " thread: " + threadName);
+        GeoObject result = mutate(geoObjectFromThread);
+        System.out.println("Shared value after mutation: " + result + " thread: " + threadName);
+        }
+    }
+
+    private static GeoObject mutate(GeoObject referenceGeoObject){ //increments width and height
+
+        referenceGeoObject.incrementHeight();
+        referenceGeoObject.incrementWidth();
+        return referenceGeoObject;
+    }
+}
+
+class MutationThread extends Thread{
+    String nameOfThread;
+    GeoObject geoObjectShared;
+
+
+    public MutationThread(String threadName, GeoObject sharedObject) {
+        this.nameOfThread = threadName;
+        this.geoObjectShared = sharedObject;
+    }
+
+    @Override
+    public void run() {
+        //we are calling them directly from the class with the geoObject parameters
+        ObjectMutation.example(nameOfThread);
+        ObjectMutation.example(nameOfThread, geoObjectShared);
+    }
+}
+
+public class RaceCondition {
+
+    public static void main(String[] args) {
+        List<Thread> threads = new ArrayList<>();
+        GeoObject mainGeoObject = new GeoObject(0,0);
+
+        for (int i = 0; i < 10; i++) {
+            MutationThread mutationThread = new MutationThread("T"+i, mainGeoObject);
+            threads.add(mutationThread);
+        }
+
+        threads.forEach(Thread::start);
+        threads.forEach(t-> {
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+}
