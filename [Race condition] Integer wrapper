@@ -1,0 +1,110 @@
+package Threads;
+
+
+import java.util.HashSet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+
+class IntegerWrapper {
+    int value = 0;
+
+    public void increment() {
+        this.value++;
+    }
+
+    public int getValue() {
+        return value;
+    }
+}
+
+
+class ExampleThread extends Thread {
+    final IntegerWrapper integerWrapper; //val = 0, increment is value++ and getValue()
+    int threadLocalCnt; //is local because is private
+    public int threadPublicCnt = 0; //should be protected
+
+    public ExampleThread(int numForLocal, IntegerWrapper iw) {
+        threadLocalCnt = numForLocal;
+        integerWrapper = iw;
+    }
+
+    private void tryToSleep(int time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException ex) { /* DO NOTHING */}
+
+    }
+
+    //the privateVar will have no problem as long is privateFunc
+    private void privateFieldIncrement() {
+        threadLocalCnt++;
+        int localVarForFunc = threadLocalCnt;
+        tryToSleep(3);
+        if (localVarForFunc != threadLocalCnt) {
+            System.err.printf("PRIVATE-mismatch-id:%d localfuncvar:%d != threadlocalcnt:%d%n", threadId(), localVarForFunc, threadLocalCnt); //ako ne e isto local od thread so local od funkcijata
+        } else {
+            System.out.printf("[PRIVATE-id:%d] local localfuncvar:%d == threadlocalcnt:%d%n", threadId(), localVarForFunc, threadLocalCnt);
+        }
+    }
+
+    Lock lock = new ReentrantLock(); //solves the first mismatch for public cnt
+
+    public void publicFieldIncrement() {
+        lock.lock();
+        threadPublicCnt++;
+        int localVarForFunc = threadPublicCnt;
+        tryToSleep(10); //sync will not work because it sleeps here
+        lock.unlock();
+        if (localVarForFunc != threadPublicCnt) {
+            System.err.printf("PUBLIC-mismatch-id:%d localfuncvar:%d != threadpubliccnt:%d%n", threadId(), localVarForFunc, threadPublicCnt); //ako ne e isto local od thread so local od funkcijata
+        } else {
+            System.out.printf("[PUBLIC-id:%d] local localfuncvar:%d == threadpubliccnt:%d%n", threadId(), localVarForFunc, threadPublicCnt);
+        }
+    }
+
+    //second problem solved with synchronized
+    public void integerWrapperIncrement() {
+        synchronized (integerWrapper){ //what do we want to synchronize from this portion of the code
+            integerWrapper.increment();
+            int localVarForFunc = integerWrapper.getValue();
+            tryToSleep(3);
+            if (localVarForFunc != integerWrapper.getValue()) {
+                System.err.printf("INTEGER WRAPPER-mismatch-id:%d localfuncvar:%d != integerwrapper.getvalue():%d%n", threadId(), localVarForFunc, integerWrapper.getValue()); //ako ne e isto local od thread so local od funkcijata
+            } else {
+                System.out.printf("[INTEGER WRAPPER:-id:%d] local localfuncvar:%d == integerwrapper.getvalue():%d%n", threadId(), localVarForFunc, integerWrapper.getValue());
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        privateFieldIncrement();
+        publicFieldIncrement();
+        integerWrapperIncrement();
+    }
+
+
+}
+
+
+public class ScopeExample {
+
+    public static void main(String[] args) {
+        HashSet<ExampleThread> threads = new HashSet<>(); //set of threads
+        IntegerWrapper wrapperMain = new IntegerWrapper();//val = 0, increment is value++ and getValue()
+
+        for (int i = 0; i < 100; i++) {
+            ExampleThread t = new ExampleThread(0, wrapperMain); //wrapperMain is shared
+            threads.add(t);
+        }
+
+        threads.forEach(Thread::start);
+        threads.forEach(t -> {
+            // we cannot access t.privateFieldIncrement();
+            //we are calling these functions in start but also here
+            t.publicFieldIncrement();
+            t.integerWrapperIncrement();
+        });
+    }
+}
