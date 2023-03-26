@@ -103,6 +103,7 @@ public class ScopeExample {
         threads.forEach(t -> {
             // we cannot access t.privateFieldIncrement();
             //we are calling these functions in start but also here
+            
             t.publicFieldIncrement();
             t.integerWrapperIncrement();
         });
