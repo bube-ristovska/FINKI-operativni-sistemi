@@ -1,0 +1,65 @@
+package Threads;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+class Incrementer {
+    int x;
+
+    public Incrementer(int i) {
+        this.x = i;
+    }
+
+    public synchronized void increment() {
+        x++;
+    }
+
+    public int getX() {
+        return x;
+    }
+}
+
+public class IncrementerExample {
+
+    static Incrementer objIncrementer = new Incrementer(0);
+
+
+    public static void main(String[] args) {
+        List<Thread> threads = new ArrayList<>(); //at start is empty no threads are added
+
+        for (int i = 0; i < 50000; i++) { //lets add 50000 threads
+            Thread t = new Thread() { //here we override the implementations DON'T FORGET ; at end
+                int threadLocalCnt = 0;
+                //to override here methods also alt insert works
+                @Override
+                public void run() { //starts when start is executed
+                    threadLocalCnt++;
+
+                    System.out.println("Thread local variable: " + threadLocalCnt);
+
+                    objIncrementer.increment();
+                }
+            };
+            //here we add the thread to the list
+            threads.add(t);
+        }
+
+        threads.forEach(Thread::start);
+
+        threads.forEach(t->{
+            try{
+                t.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e); //intelijej gives this automatically
+            }
+        });
+
+
+        System.out.println("Shared incrementer value: " + objIncrementer.getX());
+
+
+
+    }
+}
